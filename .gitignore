@@ -1,8 +1,6 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
-/node_modules
-/.pnp
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,32 +8,98 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
 # next.js
-/.next/
-/out/
+.next/
+out/
+.swc/
 
-# production
-/build
+# build / export
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
 
-# misc
-.DS_Store
-*.pem
+# env & secrets — never commit real env files
+.env
+.env.*
+!.env.example
+!.env*.example
 
-# debug
+# local database + sqlite debris
+data/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+prisma/*.db
+prisma/*.db-*
+
+# logs & debug
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+.tmp-*
+build-out.txt
+build-err.txt
 
-# env files (can opt-in for committing if needed)
-.env*
+# testing / coverage
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+blob-report/
 
-# vercel
-.vercel
+# editors / OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.pem
+*.key
+*.p12
+*.swp
+*~
+.idea/
+.vscode/*
+!.vscode/extensions.json
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# local AI / editor agent junk (recreated by tools; not part of the project)
+.cursor/
+.claude/
+.agent/
+.codex/
+.github/copilot*
+AGENTS.md
+CLAUDE.md
+.cursorrules
+.cursorignore
+
+# graphify local graph
+graphify-out/
+
+# personal notes — keep local only
+learning-journal.md
+devlog.md
+paln.md
+plan.md
+TODO.local.md
+notes.md
+scratch/
+
+# deploy runtime leftovers (scripts stay tracked)
+deploy/*.log
+deploy/.env
+deploy/.env.*
+*.pid
+.pm2/
+.dump/
+
+# vercel / turbo / caches
+.vercel/
+.turbo/
+.eslintcache
+.cache/

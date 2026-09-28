@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AdminCredential {
+  id           String   @id @default(cuid())
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Judge {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  itemsAsJudge1 Item[]            @relation("Judge1")
+  itemsAsJudge2 Item[]            @relation("Judge2")
+  scores        Score[]
+  submissions   JudgeSubmission[]
+}
+
+model Item {
+  id           String    @id @default(cuid())
+  name         String
+  code         String    @unique
+  privateToken String    @unique
+  judge1Id     String
+  judge2Id     String
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  judge1       Judge             @relation("Judge1", fields: [judge1Id], references: [id])
+  judge2       Judge             @relation("Judge2", fields: [judge2Id], references: [id])
+  participants Participant[]
+  submissions  JudgeSubmission[]
+  auditLogs    ResultAuditLog[]
+}
+
+model Participant {
+  id         String   @id @default(cuid())
+  itemId     String
+  slNo       Int
+  chestNo    String
+  codeLetter String
+  placement  Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  item   Item    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  scores Score[]
+
+  @@unique([itemId, chestNo])
+  @@unique([itemId, codeLetter])
+  @@unique([itemId, slNo])
+  @@index([itemId, placement])
+}
+
+model Score {
+  id            String   @id @default(cuid())
+  participantId String
+  judgeId       String
+  mark          Float?
+  grade         String?
+  remark        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  judge       Judge       @relation(fields: [judgeId], references: [id])
+
+  @@unique([participantId, judgeId])
+}
+
+model JudgeSubmission {
+  id          String    @id @default(cuid())
+  itemId      String
+  judgeId     String
+  submittedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  item  Item  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  judge Judge @relation(fields: [judgeId], references: [id])
+
+  @@unique([itemId, judgeId])
+}
+
+model ResultAuditLog {
+  id        String   @id @default(cuid())
+  itemId    String
+  action    String
+  detail    String
+  createdAt DateTime @default(now())
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, createdAt])
+}

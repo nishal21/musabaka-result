@@ -1,25 +1,48 @@
 {
   "name": "musabaka",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "license": "MIT",
+  "description": "Competition judging site: admin scoring, private judge links, public placement-only results",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nishal21/musabaka-result.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nishal21/musabaka-result/issues"
+  },
+  "homepage": "https://github.com/nishal21/musabaka-result#readme",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "check:repo": "node scripts/check-repo.mjs",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@prisma/client": "6.19.0",
+    "@react-pdf/renderer": "^4.9.0",
+    "bcryptjs": "^3.0.3",
+    "framer-motion": "^12.23.12",
+    "jose": "^6.0.11",
+    "nanoid": "^5.1.5",
     "next": "16.3.6",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
+    "prisma": "6.19.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
