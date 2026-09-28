@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Noto_Naskh_Arabic, Source_Sans_3 } from "next/font/google";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SiteJsonLd } from "@/components/SiteJsonLd";
 import { ToastProvider } from "@/components/ui/Toast";
+import { buildMetadata } from "@/lib/seo";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -22,13 +24,7 @@ const notoNaskh = Noto_Naskh_Arabic({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "SKJMCC Musabaqa",
-    template: "%s · SKJMCC Musabaqa",
-  },
-  description: "SKJMCC Musabaqa judging and results",
-};
+export const metadata: Metadata = buildMetadata();
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -44,6 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${manrope.variable} ${sourceSans.variable} ${notoNaskh.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-body text-ink">
+        <SiteJsonLd />
         <ToastProvider>
           <div className="flex min-h-dvh flex-1 flex-col">{children}</div>
         </ToastProvider>

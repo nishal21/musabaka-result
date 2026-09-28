@@ -1,4 +1,5 @@
 import { customAlphabet } from "nanoid";
+import { siteUrl } from "@/lib/site";
 
 const tokenAlphabet = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
@@ -18,9 +19,7 @@ export function clampMark(value: number) {
   return Math.min(100, Math.max(0, value));
 }
 
-export function siteUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
-}
+export { siteUrl };
 
 export function judgeLink(privateToken: string) {
   return `${siteUrl()}/judge/${privateToken}`;
