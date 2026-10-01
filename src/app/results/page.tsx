@@ -23,10 +23,27 @@ export const metadata: Metadata = {
 };
 
 export default async function ResultsHubPage() {
-  const items = await prisma.item.findMany({
+  const rows = await prisma.item.findMany({
     where: { publishedAt: { not: null } },
     orderBy: { publishedAt: "desc" },
-    select: { id: true, name: true, code: true },
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      publishedAt: true,
+      participants: {
+        where: { placement: { not: null } },
+        orderBy: { placement: "asc" },
+        select: { chestNo: true, placement: true },
+      },
+    },
   });
+  const items = rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    code: r.code,
+    publishedAt: (r.publishedAt as Date).toISOString(),
+    placed: r.participants.map((p) => ({ chestNo: p.chestNo, placement: p.placement as number })),
+  }));
   return <PublicResultsHub items={items} />;
 }

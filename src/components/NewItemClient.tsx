@@ -110,7 +110,6 @@ export function NewItemClient({ judges }: { judges: Judge[] }) {
             }}
           >
             <Input name="name" placeholder="Name" required minLength={2} />
-            <Input name="password" type="password" placeholder="Password" required minLength={4} />
             <Button type="submit" variant="secondary" disabled={pending}>
               Add to roster
             </Button>

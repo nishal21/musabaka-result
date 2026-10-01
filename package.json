@@ -20,7 +20,11 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "check:repo": "node scripts/check-repo.mjs",
+    "prepublishOnly": "npm run check:repo",
     "postinstall": "prisma generate"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",
@@ -30,6 +34,7 @@
     "jose": "^6.0.11",
     "nanoid": "^5.1.5",
     "next": "16.3.6",
+    "prisma": "6.19.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^3.25.76"
@@ -42,7 +47,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
-    "prisma": "6.19.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

@@ -5,8 +5,10 @@ mkdir -p data
 if [[ ! -f .env ]]; then
   cp .env.example .env
   echo "Edit .env before production use."
+  exit 1
 fi
-npm ci
+# Prefer ci when lockfile matches; fall back to install
+npm ci || npm install
 npx prisma migrate deploy
 npm run build
 pm2 start deploy/ecosystem.config.cjs || pm2 restart musabaka

@@ -18,7 +18,7 @@ npm run dev
 - Results: http://localhost:3000/results  
 - Admin: http://localhost:3000/login  
 
-Never commit `.env`, the SQLite file under `data/`, or passwords.
+
 
 ## Stack
 

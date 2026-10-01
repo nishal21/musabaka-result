@@ -31,30 +31,24 @@ export async function generateMetadata({
       title: `${item.name} · ${SITE.name}`,
       description,
       url: `/results/${itemId}`,
-      images: [
-        {
-          url: SITE.ogImage.path,
-          width: SITE.ogImage.width,
-          height: SITE.ogImage.height,
-          alt: SITE.ogImage.alt,
-        },
-      ],
     },
     twitter: {
       card: "summary_large_image",
       title: `${item.name} · ${SITE.name}`,
       description,
-      images: [SITE.ogImage.path],
     },
   };
 }
 
 export default async function PublicItemResultsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ itemId: string }>;
+  searchParams: Promise<{ chest?: string | string[] }>;
 }) {
   const { itemId } = await params;
+  const { chest } = await searchParams;
   const item = await prisma.item.findUnique({
     where: { id: itemId },
     include: {
@@ -83,7 +77,8 @@ export default async function PublicItemResultsPage({
 
   return (
     <PlacementBoard
-      item={{ name: item.name, code: item.code }}
+      item={{ name: item.name, code: item.code, publishedAt: item.publishedAt.toISOString(), path: `/results/${item.id}` }}
+      highlight={typeof chest === "string" ? chest : undefined}
       rows={item.participants
         .filter((p) => p.placement != null)
         .map((p) => ({

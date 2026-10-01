@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { deleteItemAction } from "@/lib/actions";
 import { motion } from "framer-motion";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { buttonClass, ItemStatus, StatusChip } from "@/components/ui/primitives";
@@ -49,6 +50,24 @@ function JudgePill({ name, done }: { name: string; done: boolean }) {
 export function ItemsBoard({ items }: { items: BoardItem[] }) {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | ItemStatus>("all");
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [, start] = useTransition();
+
+  const remove = (item: BoardItem) => {
+    const warning =
+      item.status === "published"
+        ? `Delete "${item.name}" (${item.code})?\n\nIt is published and will disappear from the public results. All participants, marks and placements will be lost. This cannot be undone.`
+        : `Delete "${item.name}" (${item.code})?\n\nAll participants, marks and placements will be lost. This cannot be undone.`;
+    if (!confirm(warning)) return;
+    setDeleting(item.id);
+    start(async () => {
+      try {
+        await deleteItemAction(item.id);
+      } finally {
+        setDeleting(null);
+      }
+    });
+  };
 
   const shown = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -137,6 +156,15 @@ export function ItemsBoard({ items }: { items: BoardItem[] }) {
                 <a href={`/api/items/${item.id}/pdf`} download className={`${buttonClass("ghost", "sm")} ml-auto`}>
                   PDF
                 </a>
+                <button
+                  type="button"
+                  onClick={() => remove(item)}
+                  disabled={deleting === item.id}
+                  aria-label={`Delete ${item.name}`}
+                  className={`${buttonClass("ghost", "sm")} text-brand-red hover:bg-brand-red/10 hover:text-brand-red disabled:opacity-50`}
+                >
+                  {deleting === item.id ? "Deleting…" : "Delete"}
+                </button>
               </div>
             </motion.li>
           ))}

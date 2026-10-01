@@ -42,29 +42,12 @@ export async function adminLogoutAction() {
 export async function createJudgeAction(formData: FormData) {
   await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
   if (name.length < 2) return fail("Name is required");
-  if (password.length < 4) return fail("Password must be at least 4 characters");
   const exists = await prisma.judge.findUnique({ where: { name } });
   if (exists) return fail("Judge already exists");
-  await prisma.judge.create({
-    data: { name, passwordHash: await bcrypt.hash(password, 12) },
-  });
+  await prisma.judge.create({ data: { name } });
   revalidatePath("/admin/judges");
   revalidatePath("/admin");
-  return ok();
-}
-
-export async function resetJudgePasswordAction(formData: FormData) {
-  await requireAdmin();
-  const id = String(formData.get("id") ?? "");
-  const password = String(formData.get("password") ?? "");
-  if (password.length < 4) return fail("Password must be at least 4 characters");
-  await prisma.judge.update({
-    where: { id },
-    data: { passwordHash: await bcrypt.hash(password, 12) },
-  });
-  revalidatePath("/admin/judges");
   return ok();
 }
 
@@ -125,7 +108,8 @@ export async function deleteItemAction(itemId: string) {
   await requireAdmin();
   await prisma.item.delete({ where: { id: itemId } });
   revalidatePath("/admin");
-  redirect("/admin");
+  revalidatePath("/results");
+  revalidatePath(`/results/${itemId}`);
 }
 
 export async function addParticipantAction(itemId: string, formData: FormData) {
@@ -164,7 +148,6 @@ export async function deleteParticipantAction(itemId: string, participantId: str
 
 export async function judgeLoginAction(token: string, formData: FormData) {
   const judgeId = String(formData.get("judgeId") ?? "");
-  const password = String(formData.get("password") ?? "");
   const item = await prisma.item.findUnique({
     where: { privateToken: token },
     include: { judge1: true, judge2: true },
@@ -174,8 +157,6 @@ export async function judgeLoginAction(token: string, formData: FormData) {
     return fail("Not assigned to this item");
   }
   const judge = judgeId === item.judge1Id ? item.judge1 : item.judge2;
-  const match = await bcrypt.compare(password, judge.passwordHash);
-  if (!match) return fail("Invalid password");
   await createJudgeSession({
     judgeId: judge.id,
     itemId: item.id,

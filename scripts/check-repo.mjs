@@ -59,7 +59,7 @@ for (const f of files) {
   const path = join(root, f);
   if (!existsSync(path)) continue;
   const text = readFileSync(path, "utf8");
-  if (text.includes("dev-only-session-secret")) {
+  if (text.includes(["dev", "only", "session", "secret"].join("-"))) {
     problems.push(`${f}: hardcoded session secret fallback`);
   }
   if (/ADMIN_PASSWORD\s*\|\|\s*["']/.test(text) || /SESSION_SECRET\s*\|\|\s*["']/.test(text)) {

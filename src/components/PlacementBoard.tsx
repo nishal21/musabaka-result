@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { LivePill } from "@/components/LivePill";
+import { ShareButton } from "@/components/ShareButton";
 import { BrandMark } from "@/components/ui/primitives";
+import { timeAgo, useNow } from "@/lib/live";
 import { placementLabel } from "@/lib/utils";
 import { easeOutQuart, rankReveal } from "@/lib/motion";
 
@@ -15,15 +18,30 @@ const medal: Record<number, { ring: string; chip: string; text: string; bar: str
   3: { ring: "ring-brand-red/25", chip: "bg-brand-red text-white", text: "text-brand-red", bar: "bg-brand-red", h: "sm:min-h-44" },
 };
 
-function PodiumCard({ row, index }: { row: Row; index: number }) {
+function YouBadge() {
+  return (
+    <span className="rounded-full bg-ink px-2 py-0.5 text-xs font-semibold text-white">
+      You
+    </span>
+  );
+}
+
+function PodiumCard({ row, index, mine }: { row: Row; index: number; mine: boolean }) {
   const m = medal[row.placement];
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0, transition: { delay: 0.15 + index * 0.12, duration: 0.5, ease: easeOutQuart } }}
-      className={`card relative flex flex-col items-center justify-end overflow-hidden px-4 pb-5 pt-6 text-center ring-2 ${m.ring} ${m.h}`}
+      className={`card relative flex flex-col items-center justify-end overflow-hidden px-4 pb-5 pt-6 text-center ${
+        mine ? "ring-4 ring-ink/80" : `ring-2 ${m.ring}`
+      } ${m.h}`}
     >
       <span className={`absolute inset-x-0 top-0 h-1.5 ${m.bar}`} aria-hidden />
+      {mine ? (
+        <span className="absolute right-3 top-3">
+          <YouBadge />
+        </span>
+      ) : null}
       <span className={`rounded-full px-3 py-1 font-display text-sm font-extrabold ${m.chip}`}>
         {placementLabel(row.placement)}
       </span>
@@ -36,7 +54,24 @@ function PodiumCard({ row, index }: { row: Row; index: number }) {
   );
 }
 
-export function PlacementBoard({ item, rows }: { item: { name: string; code: string }; rows: Row[] }) {
+export function PlacementBoard({
+  item,
+  rows,
+  highlight,
+}: {
+  item: { name: string; code: string; publishedAt: string; path: string };
+  rows: Row[];
+  highlight?: string;
+}) {
+  const now = useNow();
+  const mineKey = highlight?.trim().toLowerCase();
+  const isMine = (r: Row) => Boolean(mineKey) && r.chestNo.toLowerCase() === mineKey;
+  const mine = rows.find(isMine);
+  const winnersLine = rows
+    .filter((r) => r.placement <= 3)
+    .map((r) => `${placementLabel(r.placement)}: Chest ${r.chestNo}`)
+    .join(" · ");
+
   const podium = rows.filter((r) => r.placement <= 3);
   const rest = rows.filter((r) => r.placement > 3);
   // DOM stays 1-2-3 for mobile; sm:order-* lays out 2nd, 1st, 3rd
@@ -48,13 +83,22 @@ export function PlacementBoard({ item, rows }: { item: { name: string; code: str
     <div className="min-h-dvh">
       <div className="brand-bar" />
       <header className="hero-field border-b border-line">
-        <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3">
-          <Link href="/results" className="inline-flex min-h-10 items-center gap-1.5 rounded-lg pr-2 text-sm font-semibold text-ink-muted no-underline hover:text-ink">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
+          <Link
+            href="/results"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg pr-2 text-sm font-semibold text-ink-muted no-underline hover:text-ink"
+          >
             <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
               <path d="M12.5 4.5L7 10l5.5 5.5" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" />
             </svg>
             All results
           </Link>
+          <ShareButton
+            title={`${item.name} · SKJMCC Musabaqa`}
+            text={`${item.name} (${item.code}) results. ${winnersLine}`.trim()}
+            url={item.path}
+            whatsapp
+          />
         </div>
         <div className="mx-auto flex max-w-4xl flex-col items-center px-4 pb-8 pt-0 text-center sm:pb-10">
           <BrandMark size="md" className="mb-3" />
@@ -62,7 +106,12 @@ export function PlacementBoard({ item, rows }: { item: { name: string; code: str
             {item.code}
           </p>
           <h1 className="mt-1 font-display text-[clamp(1.7rem,5vw,2.6rem)] font-extrabold leading-tight">{item.name}</h1>
-          <p className="mt-1 text-sm text-ink-muted">Final placements</p>
+          <p className="mt-1 text-sm text-ink-muted">
+            Placements{now ? <> · announced {timeAgo(item.publishedAt, now)}</> : null}
+          </p>
+          <div className="mt-2">
+            <LivePill />
+          </div>
         </div>
       </header>
 
@@ -71,11 +120,34 @@ export function PlacementBoard({ item, rows }: { item: { name: string; code: str
           <p className="card px-6 py-12 text-center text-ink-muted">Placements will appear here once set.</p>
         ) : (
           <>
+            {mine ? (
+              <motion.div
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: 1, y: 0, transition: { delay: 0.6, duration: 0.45, ease: easeOutQuart } }}
+                className="card mb-6 flex flex-col items-center gap-3 px-5 py-5 text-center sm:flex-row sm:text-left"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-lg font-bold">
+                    Chest {mine.chestNo} placed {placementLabel(mine.placement)}
+                  </p>
+                  <p className="text-sm text-ink-muted">in {item.name}</p>
+                </div>
+                <ShareButton
+                  title={`${item.name} · SKJMCC Musabaqa`}
+                  text={`Chest ${mine.chestNo} placed ${placementLabel(mine.placement)} in ${item.name} at SKJMCC Musabaqa.`}
+                  url={`${item.path}?chest=${encodeURIComponent(mine.chestNo)}`}
+                  label="Share"
+                  variant="solid"
+                  whatsapp
+                />
+              </motion.div>
+            ) : null}
+
             {podium.length > 0 ? (
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-center">
                 {podiumOrder.map(({ r, orderCls }, i) => (
                   <div key={`${r.placement}-${r.chestNo}`} className={`sm:w-1/3 sm:max-w-[15rem] ${orderCls}`}>
-                    <PodiumCard row={r} index={i} />
+                    <PodiumCard row={r} index={i} mine={isMine(r)} />
                   </div>
                 ))}
               </div>
@@ -90,7 +162,7 @@ export function PlacementBoard({ item, rows }: { item: { name: string; code: str
                     variants={rankReveal}
                     initial="hidden"
                     animate="show"
-                    className="card flex items-center gap-4 px-4 py-3"
+                    className={`card flex items-center gap-4 px-4 py-3 ${isMine(r) ? "ring-4 ring-ink/80" : ""}`}
                   >
                     <span className="tabular w-12 shrink-0 font-display text-lg font-extrabold text-ink-muted">
                       {placementLabel(r.placement)}
@@ -99,6 +171,7 @@ export function PlacementBoard({ item, rows }: { item: { name: string; code: str
                       <span className="text-xs font-bold uppercase tracking-[0.1em] text-ink-muted">Chest </span>
                       <span className="tabular font-bold">{r.chestNo}</span>
                     </span>
+                    {isMine(r) ? <YouBadge /> : null}
                     <span className="text-sm text-ink-muted">
                       Code <span className="font-bold text-ink">{r.codeLetter}</span>
                     </span>
@@ -106,6 +179,8 @@ export function PlacementBoard({ item, rows }: { item: { name: string; code: str
                 ))}
               </ol>
             ) : null}
+
+            <p className="mt-8 text-center text-xs text-ink-muted">Only placements are published. Marks are not shown.</p>
           </>
         )}
       </main>

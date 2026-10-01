@@ -17,7 +17,6 @@ model AdminCredential {
 model Judge {
   id           String   @id @default(cuid())
   name         String   @unique
-  passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
